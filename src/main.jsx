@@ -156,30 +156,6 @@ function overlayPos(target) {
 }
 
 
-function DebugOverlay({ target }) {
-  const pos = overlayPos(target);
-  return (
-    <g className="debug-overlay" pointerEvents="none">
-      <circle cx={target.x} cy={target.y} r="0.45" fill="#ffffff" opacity="0.95" />
-      <line x1={target.x - 4} y1={target.y} x2={target.x + 4} y2={target.y} stroke="#ef4444" strokeWidth="0.22" />
-      <line x1={target.x} y1={target.y - 4} x2={target.x} y2={target.y + 4} stroke="#22c55e" strokeWidth="0.22" />
-      <circle cx={target.x} cy={target.y} r="1" fill="none" stroke="#facc15" strokeWidth="0.18" strokeDasharray="0.4 0.35" />
-      <circle cx={target.x} cy={target.y} r="2" fill="none" stroke="#facc15" strokeWidth="0.18" strokeDasharray="0.4 0.35" />
-
-      <circle cx={pos.x} cy={pos.y} r="2.8" fill="rgba(56, 189, 248, 0.10)" stroke="#38bdf8" strokeWidth="0.28" />
-      <line x1={pos.x - 3.8} y1={pos.y} x2={pos.x + 3.8} y2={pos.y} stroke="#38bdf8" strokeWidth="0.32" />
-      <line x1={pos.x} y1={pos.y - 3.8} x2={pos.x} y2={pos.y + 3.8} stroke="#38bdf8" strokeWidth="0.32" />
-      <circle cx={pos.x} cy={pos.y} r="0.5" fill="#38bdf8" />
-
-      <text x={target.x + 2.6} y={target.y - 2.4} fontSize="2.2" fontWeight="900" fill="#ffffff" stroke="#000000" strokeWidth="0.25" paintOrder="stroke">
-        ID {target.id}
-      </text>
-      <text x={target.x + 2.6} y={target.y + 0.1} fontSize="1.7" fontWeight="800" fill="#facc15" stroke="#000000" strokeWidth="0.2" paintOrder="stroke">
-        1 / 2
-      </text>
-    </g>
-  );
-}
 
 
 function App() {
@@ -206,7 +182,6 @@ function App() {
   const [editingName, setEditingName] = useState("");
   const [history, setHistory] = useState([]);
   const [playMode, setPlayMode] = useState(false);
-  const [overlayDebug, setOverlayDebug] = useState(false);
 
   const activePlayer = players[activePlayerIndex];
   const allTargetIds = useMemo(() => BASE_TARGETS.map((t) => String(t.id)), []);
@@ -445,36 +420,6 @@ function App() {
           <svg viewBox="0 0 160 110" className="play-board" aria-label="Florbalový terč">
             <image href={boardVariant.image} x="0" y="0" width="160" height="110" preserveAspectRatio="xMidYMid meet" />
 
-            {overlayDebug && targets.map((t) => <DebugOverlay key={`play-debug-${t.id}`} target={t} />)}
-
-                  {overlayDebug && targets.map((t) => <DebugOverlay key={`debug-${t.id}`} target={t} />)}
-
-            {!overlayDebug && mode.type === "clear" && activePlayer && targets.map((t) => {
-              const hit = Boolean(activePlayer.hits[String(t.id)]);
-              const pos = overlayPos(t);
-              return hit
-                ? <CheckOverlay key={`play-check-${t.id}`} x={pos.x} y={pos.y} size={5.0} />
-                : <BallOverlay key={`play-ball-${t.id}`} x={pos.x} y={pos.y} r={2.8} />;
-            })}
-
-            {!overlayDebug && mode.type === "clear" && clearModeAllHit && (
-              <BallOverlay x={80} y={55} r={10.5} />
-            )}
-
-            {!overlayDebug && mode.type === "countdown" && activePlayer && targets.map((t) => {
-              const closingInfo = getClosingInfo(t);
-              const pos = overlayPos(t);
-              return closingInfo?.closes
-                ? <BallOverlay key={`play-close-${t.id}`} x={pos.x} y={pos.y} r={2.8} />
-                : null;
-            })}
-
-            {targets.map((t) => (
-              <g key={t.id} className="hit-target" onClick={() => applyHit(t)}>
-                <circle cx={t.x} cy={t.y} r={t.d / 2 + 7} fill="transparent" />
-              </g>
-            ))}
-
             <g className="hit-target" onClick={() => applyHit("bull")}>
               <circle cx="80" cy="55" r="25" fill="transparent" />
             </g>
@@ -526,13 +471,6 @@ function App() {
                 ))}
               </select>
             </label>
-
-            <label>
-              <span>Debug</span>
-              <button className={overlayDebug ? "debug-toggle active" : "debug-toggle"} onClick={() => setOverlayDebug((v) => !v)}>
-                Overlay debug
-              </button>
-            </label>
           </div>
         </div>
 
@@ -543,7 +481,7 @@ function App() {
                 <svg viewBox="0 0 160 110" className="board" aria-label="Florbalový terč">
                   <image href={boardVariant.image} x="0" y="0" width="160" height="110" preserveAspectRatio="xMidYMid meet" />
 
-                  {!overlayDebug && mode.type === "clear" && activePlayer && targets.map((t) => {
+                  {mode.type === "clear" && activePlayer && targets.map((t) => {
                     const hit = Boolean(activePlayer.hits[String(t.id)]);
                     const pos = overlayPos(t);
                     return hit
@@ -551,11 +489,11 @@ function App() {
                       : <BallOverlay key={`ball-${t.id}`} x={pos.x} y={pos.y} r={2.8} />;
                   })}
 
-                  {!overlayDebug && mode.type === "clear" && clearModeAllHit && (
+                  {mode.type === "clear" && clearModeAllHit && (
                     <BallOverlay x={80} y={55} r={10.5} />
                   )}
 
-                  {!overlayDebug && mode.type === "countdown" && activePlayer && targets.map((t) => {
+                  {mode.type === "countdown" && activePlayer && targets.map((t) => {
                     const closingInfo = getClosingInfo(t);
                     const pos = overlayPos(t);
                     return closingInfo?.closes
