@@ -3,19 +3,42 @@ import { createRoot } from "react-dom/client";
 import { Plus, RotateCcw, Undo2, Trophy, Pencil, Trash2, Check, X } from "lucide-react";
 import "./styles.css";
 
-const TARGETS = [
-  { id: 1, x: 21.5, y: 95, d: 25, score: 14 },
-  { id: 2, x: 141.5, y: 95, d: 25, score: 18 },
-  { id: 3, x: 80, y: 95, d: 25, score: 16 },
-  { id: 4, x: 20, y: 60, d: 22, score: 22 },
-  { id: 5, x: 140, y: 60, d: 22, score: 24 },
-  { id: 6, x: 42.5, y: 40, d: 22, score: 32 },
-  { id: 7, x: 117.5, y: 40, d: 22, score: 34 },
-  { id: 8, x: 20, y: 17.5, d: 22, score: 36 },
-  { id: 9, x: 55, y: 15, d: 22, score: 26 },
-  { id: 10, x: 105, y: 15, d: 22, score: 28 },
-  { id: 11, x: 140, y: 17.5, d: 22, score: 38 },
+const BASE_TARGETS = [
+  { id: 1, x: 21.5, y: 95, d: 25 },
+  { id: 2, x: 141.5, y: 95, d: 25 },
+  { id: 3, x: 80, y: 95, d: 25 },
+  { id: 4, x: 20, y: 60, d: 22 },
+  { id: 5, x: 140, y: 60, d: 22 },
+  { id: 6, x: 42.5, y: 40, d: 22 },
+  { id: 7, x: 117.5, y: 40, d: 22 },
+  { id: 8, x: 20, y: 17.5, d: 22 },
+  { id: 9, x: 55, y: 15, d: 22 },
+  { id: 10, x: 105, y: 15, d: 22 },
+  { id: 11, x: 140, y: 17.5, d: 22 },
 ];
+
+const BOARD_VARIANTS = {
+  "1-12": {
+    label: "1–12 bez 10",
+    image: "/boards/board-1-12.svg",
+    scores: { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 11, 11: 12 },
+  },
+  "4-24": {
+    label: "4–24",
+    image: "/boards/board-4-24.svg",
+    scores: { 1: 4, 2: 6, 3: 8, 4: 12, 5: 14, 6: 16, 7: 18, 8: 20, 9: 22, 10: 24, 11: 26 },
+  },
+  "7-18": {
+    label: "7–18 bez 10",
+    image: "/boards/board-7-18.svg",
+    scores: { 1: 7, 2: 8, 3: 9, 4: 11, 5: 12, 6: 13, 7: 14, 8: 15, 9: 16, 10: 17, 11: 18 },
+  },
+  "14-38": {
+    label: "14–38 sudé",
+    image: "/boards/board-14-38.svg",
+    scores: { 1: 14, 2: 18, 3: 16, 4: 22, 5: 24, 6: 32, 7: 34, 8: 36, 9: 26, 10: 28, 11: 38 },
+  },
+};
 
 const MODES = {
   COUNTDOWN_300: { label: "300 → 0", start: 300, type: "countdown" },
@@ -38,12 +61,6 @@ function newPlayer(name, mode) {
   };
 }
 
-function scoreLabel(targetId) {
-  if (targetId === "bull") return "BULL";
-  const target = TARGETS.find((t) => String(t.id) === String(targetId));
-  return target ? `${target.score} bodů` : String(targetId);
-}
-
 function safeName(name, fallback = "Nepojmenovaný hráč") {
   const trimmed = String(name || "").trim();
   return trimmed || fallback;
@@ -51,7 +68,17 @@ function safeName(name, fallback = "Nepojmenovaný hráč") {
 
 function App() {
   const [modeKey, setModeKey] = useState("COUNTDOWN_300");
+  const [boardVariantKey, setBoardVariantKey] = useState("14-38");
+
   const mode = MODES[modeKey];
+  const boardVariant = BOARD_VARIANTS[boardVariantKey];
+
+  const targets = useMemo(() => {
+    return BASE_TARGETS.map((target) => ({
+      ...target,
+      score: boardVariant.scores[target.id],
+    }));
+  }, [boardVariantKey]);
 
   const [players, setPlayers] = useState([
     newPlayer("Nepojmenovaný hráč", MODES.COUNTDOWN_300),
@@ -63,13 +90,19 @@ function App() {
   const [history, setHistory] = useState([]);
 
   const activePlayer = players[activePlayerIndex];
-  const allTargetIds = useMemo(() => TARGETS.map((t) => String(t.id)), []);
+  const allTargetIds = useMemo(() => BASE_TARGETS.map((t) => String(t.id)), []);
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").catch(() => {});
     }
   }, []);
+
+  function scoreLabel(targetId, variantKey = boardVariantKey) {
+    if (targetId === "bull") return "BULL";
+    const score = BOARD_VARIANTS[variantKey]?.scores?.[Number(targetId)];
+    return score ? `${score} bodů` : String(targetId);
+  }
 
   function resetGame(nextModeKey = modeKey) {
     const nextMode = MODES[nextModeKey];
@@ -82,6 +115,11 @@ function App() {
   function changeMode(nextModeKey) {
     setModeKey(nextModeKey);
     resetGame(nextModeKey);
+  }
+
+  function changeBoardVariant(nextVariantKey) {
+    setBoardVariantKey(nextVariantKey);
+    setHistory([]);
   }
 
   function addPlayer() {
@@ -177,6 +215,7 @@ function App() {
         playerId: activePlayer.id,
         playerName: activePlayer.name,
         modeKey,
+        boardVariantKey,
       },
       ...prev,
     ]);
@@ -199,12 +238,25 @@ function App() {
             <h1 className="title">Florbalové šipky</h1>
             <p className="subtitle">Aktivní hráč: <strong>{activePlayer?.name}</strong></p>
           </div>
-          <div className="mode-row">
-            <select value={modeKey} onChange={(e) => changeMode(e.target.value)}>
-              {Object.entries(MODES).map(([key, m]) => (
-                <option key={key} value={key}>{m.label}</option>
-              ))}
-            </select>
+
+          <div className="top-selects">
+            <label>
+              <span>Hra</span>
+              <select value={modeKey} onChange={(e) => changeMode(e.target.value)}>
+                {Object.entries(MODES).map(([key, m]) => (
+                  <option key={key} value={key}>{m.label}</option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              <span>Terč</span>
+              <select value={boardVariantKey} onChange={(e) => changeBoardVariant(e.target.value)}>
+                {Object.entries(BOARD_VARIANTS).map(([key, v]) => (
+                  <option key={key} value={key}>{v.label}</option>
+                ))}
+              </select>
+            </label>
           </div>
         </div>
 
@@ -213,9 +265,9 @@ function App() {
             <div className="card-inner">
               <div className="board-wrap">
                 <svg viewBox="0 0 160 110" className="board" aria-label="Florbalový terč">
-                  <image href="/board.svg" x="0" y="0" width="160" height="110" preserveAspectRatio="xMidYMid meet" />
+                  <image href={boardVariant.image} x="0" y="0" width="160" height="110" preserveAspectRatio="xMidYMid meet" />
 
-                  {TARGETS.map((t) => (
+                  {targets.map((t) => (
                     <g key={t.id} className="hit-target" onClick={() => applyHit(t)}>
                       <circle cx={t.x} cy={t.y} r={t.d / 2 + 7} fill="transparent" />
                     </g>
@@ -297,7 +349,7 @@ function App() {
                               <div className="score">{p.score}</div>
                             ) : (
                               <div>
-                                <div className="score">{hitCount}/{TARGETS.length}</div>
+                                <div className="score">{hitCount}/{BASE_TARGETS.length}</div>
                                 <div className="muted">{p.finished ? "Hotovo!" : "Po všech terčích zavři BULLem"}</div>
                               </div>
                             )}
@@ -317,7 +369,7 @@ function App() {
                   {history.length === 0 && <div className="muted">Zatím nic.</div>}
                   {history.slice(0, 30).map((h, i) => (
                     <div key={i}>
-                      <strong>{h.playerName}</strong>: {scoreLabel(h.target)}
+                      <strong>{h.playerName}</strong>: {scoreLabel(h.target, h.boardVariantKey)}
                     </div>
                   ))}
                 </div>
