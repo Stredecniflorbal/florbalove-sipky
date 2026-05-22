@@ -130,6 +130,26 @@ function BallOverlay({ x, y, r = 5.2 }) {
   );
 }
 
+const OVERLAY_OFFSETS = {
+  1: { dx: 0, dy: -1.0 },
+  2: { dx: 0, dy: -1.0 },
+  3: { dx: 0, dy: -1.0 },
+  4: { dx: -0.4, dy: -0.6 },
+  5: { dx: 0.4, dy: -0.6 },
+  6: { dx: -0.2, dy: -0.9 },
+  7: { dx: 0.2, dy: -0.9 },
+  8: { dx: 0, dy: -0.8 },
+  9: { dx: 0, dy: -0.9 },
+  10: { dx: 0, dy: -0.9 },
+  11: { dx: 0, dy: -0.8 },
+};
+
+function overlayPos(target) {
+  const offset = OVERLAY_OFFSETS[target.id] || { dx: 0, dy: -0.8 };
+  return { x: target.x + offset.dx, y: target.y + offset.dy };
+}
+
+
 function App() {
   const [modeKey, setModeKey] = useState("COUNTDOWN_300");
   const [boardVariantKey, setBoardVariantKey] = useState("14-38");
@@ -153,6 +173,7 @@ function App() {
   const [editingPlayerId, setEditingPlayerId] = useState(null);
   const [editingName, setEditingName] = useState("");
   const [history, setHistory] = useState([]);
+  const [playMode, setPlayMode] = useState(false);
 
   const activePlayer = players[activePlayerIndex];
   const allTargetIds = useMemo(() => BASE_TARGETS.map((t) => String(t.id)), []);
@@ -373,6 +394,65 @@ function App() {
     activePlayer &&
     allTargetIds.every((id) => activePlayer.hits[id]);
 
+  if (playMode) {
+    return (
+      <div className="play-mode">
+        <div className="play-topbar">
+          <div>
+            <div className="play-kicker">PLAY MODE!!</div>
+            <div className="play-player">{activePlayer?.name}</div>
+          </div>
+          <div className="play-score">
+            {mode.type === "countdown" ? activePlayer?.score : `${allTargetIds.filter((id) => activePlayer?.hits[id]).length}/${BASE_TARGETS.length}`}
+          </div>
+          <button className="secondary play-exit" onClick={() => setPlayMode(false)}>Exit</button>
+        </div>
+
+        <div className="play-board-wrap">
+          <svg viewBox="0 0 160 110" className="play-board" aria-label="Florbalový terč">
+            <image href={boardVariant.image} x="0" y="0" width="160" height="110" preserveAspectRatio="xMidYMid meet" />
+
+            {mode.type === "clear" && activePlayer && targets.map((t) => {
+              const hit = Boolean(activePlayer.hits[String(t.id)]);
+              const pos = overlayPos(t);
+              return hit
+                ? <CheckOverlay key={`play-check-${t.id}`} x={pos.x} y={pos.y} size={5.0} />
+                : <BallOverlay key={`play-ball-${t.id}`} x={pos.x} y={pos.y} r={2.8} />;
+            })}
+
+            {mode.type === "clear" && clearModeAllHit && (
+              <BallOverlay x={80} y={55} r={10.5} />
+            )}
+
+            {mode.type === "countdown" && activePlayer && targets.map((t) => {
+              const closingInfo = getClosingInfo(t);
+              const pos = overlayPos(t);
+              return closingInfo?.closes
+                ? <BallOverlay key={`play-close-${t.id}`} x={pos.x} y={pos.y} r={2.8} />
+                : null;
+            })}
+
+            {targets.map((t) => (
+              <g key={t.id} className="hit-target" onClick={() => applyHit(t)}>
+                <circle cx={t.x} cy={t.y} r={t.d / 2 + 7} fill="transparent" />
+              </g>
+            ))}
+
+            <g className="hit-target" onClick={() => applyHit("bull")}>
+              <circle cx="80" cy="55" r="25" fill="transparent" />
+            </g>
+          </svg>
+        </div>
+
+        <div className="play-controls">
+          <button onClick={nextPlayer}>Další hráč</button>
+          <button className="secondary" onClick={undo}><Undo2 size={16} /> Undo</button>
+          <button className="danger" onClick={() => resetGame()}><RotateCcw size={16} /> Reset</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app">
       <div className="shell">
@@ -421,9 +501,10 @@ function App() {
 
                   {mode.type === "clear" && activePlayer && targets.map((t) => {
                     const hit = Boolean(activePlayer.hits[String(t.id)]);
+                    const pos = overlayPos(t);
                     return hit
-                      ? <CheckOverlay key={`check-${t.id}`} x={t.x} y={t.y - 0.8} size={5.2} />
-                      : <BallOverlay key={`ball-${t.id}`} x={t.x} y={t.y - 1.2} r={3.0} />;
+                      ? <CheckOverlay key={`check-${t.id}`} x={pos.x} y={pos.y} size={5.0} />
+                      : <BallOverlay key={`ball-${t.id}`} x={pos.x} y={pos.y} r={2.8} />;
                   })}
 
                   {mode.type === "clear" && clearModeAllHit && (
@@ -432,8 +513,9 @@ function App() {
 
                   {mode.type === "countdown" && activePlayer && targets.map((t) => {
                     const closingInfo = getClosingInfo(t);
+                    const pos = overlayPos(t);
                     return closingInfo?.closes
-                      ? <BallOverlay key={`close-${t.id}`} x={t.x} y={t.y - 1.2} r={3.0} />
+                      ? <BallOverlay key={`close-${t.id}`} x={pos.x} y={pos.y} r={2.8} />
                       : null;
                   })}
 
@@ -454,7 +536,8 @@ function App() {
                 <span>{activeMultiplierInfo}</span>
               </div>
 
-              <div className="controls">
+              <div className="controls controls-four">
+                <button className="play-button" onClick={() => setPlayMode(true)}>PLAY MODE!!</button>
                 <button onClick={nextPlayer}>Další hráč</button>
                 <button className="secondary" onClick={undo}><Undo2 size={16} /> Undo</button>
                 <button className="danger" onClick={() => resetGame()}><RotateCcw size={16} /> Reset</button>
