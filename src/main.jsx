@@ -8,7 +8,6 @@ const PLAYER_PROFILES = [
   { id: "otas", name: "Otas", number: 47 },
   { id: "lacka", name: "Lacka", number: 97 },
   { id: "cahy", name: "Cahy", number: 66 },
-
   { id: "koste", name: "Koste", number: 10 },
   { id: "kaubi", name: "Kaubi", number: 9 },
   { id: "jenik", name: "Jenik", number: 7 },
@@ -17,7 +16,6 @@ const PLAYER_PROFILES = [
   { id: "dave", name: "Dave", number: 55 },
   { id: "mara", name: "Mara", number: 11 },
   { id: "vita", name: "Vita", number: 23 },
-
   { id: "vojta", name: "Vojta", number: 2 },
   { id: "picma", name: "Picma", number: 21 },
   { id: "mates", name: "Mates", number: 99 },
@@ -27,9 +25,9 @@ function initials(name) {
   return String(name || "?")
     .split(/\s+/)
     .filter(Boolean)
-    .map((x) => x[0]?.toUpperCase())
+    .map((part) => part[0]?.toUpperCase())
     .join("")
-    .slice(0, 2);
+    .slice(0, 2) || "?";
 }
 
 
@@ -215,14 +213,15 @@ function App() {
   ]);
   const [activePlayerIndex, setActivePlayerIndex] = useState(0);
   const [nameInput, setNameInput] = useState("");
+  const [profilePickerOpen, setProfilePickerOpen] = useState(false);
   const [editingPlayerId, setEditingPlayerId] = useState(null);
   const [editingName, setEditingName] = useState("");
   const [history, setHistory] = useState([]);
   const [playMode, setPlayMode] = useState(false);
-  const [profilePickerOpen, setProfilePickerOpen] = useState(false);
 
   const activePlayer = players[activePlayerIndex];
   const allTargetIds = useMemo(() => BASE_TARGETS.map((t) => String(t.id)), []);
+  const usedProfileIds = useMemo(() => new Set(players.map((p) => p.profileId).filter(Boolean)), [players]);
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
@@ -240,7 +239,7 @@ function App() {
 
   function resetGame(nextModeKey = modeKey) {
     const nextMode = MODES[nextModeKey];
-    setPlayers((prev) => prev.map((p) => newPlayer(p.name, nextMode)));
+    setPlayers((prev) => prev.map((p) => newPlayer(p.name, nextMode, { id: p.profileId, number: p.number })));
     setActivePlayerIndex(0);
     setHistory([]);
     setEditingPlayerId(null);
@@ -710,35 +709,23 @@ function App() {
                 <div className="profiles-kicker">TEAM</div>
                 <div className="profiles-title">Vyber hráče</div>
               </div>
-
-              <button className="secondary" onClick={() => setProfilePickerOpen(false)}>
-                Zavřít
-              </button>
+              <button className="secondary" onClick={() => setProfilePickerOpen(false)}>Zavřít</button>
             </div>
 
             <div className="profiles-grid">
               {PLAYER_PROFILES.map((profile) => {
                 const used = usedProfileIds.has(profile.id);
-
                 return (
                   <button
                     key={profile.id}
+                    type="button"
                     disabled={used}
                     className={`profile-card ${used ? "used" : ""}`}
                     onClick={() => addProfilePlayer(profile)}
                   >
-                    <div className="profile-avatar">
-                      {initials(profile.name)}
-                    </div>
-
-                    <div className="profile-name-card">
-                      {profile.name}
-                    </div>
-
-                    <div className="profile-number-card">
-                      #{profile.number}
-                    </div>
-
+                    <div className="profile-avatar">{initials(profile.name)}</div>
+                    <div className="profile-name-card">{profile.name}</div>
+                    <div className="profile-number-card">#{profile.number}</div>
                     {used && <div className="profile-used">VE HŘE</div>}
                   </button>
                 );
