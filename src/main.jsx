@@ -131,18 +131,23 @@ function BallOverlay({ x, y, r = 5.2 }) {
 }
 
 const OVERLAY_OFFSETS = {
-  // Tuned against the actual white circle center.
-  1: { dx: 1.2, dy: -1.0 },
-  2: { dx: -1.9, dy: -1.5 },
-  3: { dx: -0.8, dy: -1.3 },
-  4: { dx: 0.8, dy: -0.5 },
-  5: { dx: -1.3, dy: -0.7 },
-  6: { dx: -0.2, dy: -0.3 },
-  7: { dx: -1.0, dy: -0.5 },
+  // Final polish pass aligned to the white circles only.
+  1: { dx: 1.5, dy: -1.5 },
+  2: { dx: -2.4, dy: -2.0 },
+  3: { dx: -0.8, dy: -1.8 },
+  4: { dx: 1.1, dy: -1.0 },
+  5: { dx: -1.6, dy: -1.2 },
+  6: { dx: 0.0, dy: -0.8 },
+  7: { dx: -1.3, dy: -1.0 },
   8: { dx: 1.3, dy: -0.4 },
-  9: { dx: -0.2, dy: -0.2 },
-  10: { dx: -0.6, dy: -0.2 },
-  11: { dx: -0.9, dy: -0.2 },
+  9: { dx: -0.2, dy: -0.7 },
+  10: { dx: -0.6, dy: -0.7 },
+  11: { dx: -1.2, dy: -0.2 },
+};
+
+const BULL_OVERLAY_OFFSET = {
+  dx: 0,
+  dy: -1.3,
 };
 
 function overlayPos(target) {
