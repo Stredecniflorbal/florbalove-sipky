@@ -423,3 +423,66 @@ select, input {
     grid-template-columns: 1fr;
   }
 }
+
+
+.winner-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(2, 6, 23, 0.78);
+  backdrop-filter: blur(6px);
+}
+
+.winner-modal {
+  width: min(560px, 100%);
+  background:
+    radial-gradient(circle at top, rgba(34, 197, 94, 0.24), transparent 18rem),
+    #020617;
+  border: 1px solid rgba(56, 189, 248, 0.42);
+  border-radius: 28px;
+  padding: clamp(22px, 5vw, 38px);
+  text-align: center;
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.48),
+    0 0 42px rgba(56, 189, 248, 0.18);
+}
+
+.winner-kicker {
+  color: #22c55e;
+  font-size: clamp(18px, 4vw, 26px);
+  font-weight: 950;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.winner-title {
+  margin-top: 8px;
+  color: #f8fafc;
+  font-size: clamp(34px, 9vw, 62px);
+  line-height: 0.95;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.winner-subtitle {
+  margin: 16px auto 0;
+  max-width: 420px;
+  color: #cbd5e1;
+  font-size: 15px;
+}
+
+.winner-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+@media (min-width: 620px) {
+  .winner-actions {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
