@@ -409,17 +409,3 @@ select, input {
     grid-template-columns: 1fr;
   }
 }
-
-
-
-@media (max-width: 950px) {
-  .top-selects {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (max-width: 560px) {
-  .top-selects {
-    grid-template-columns: 1fr;
-  }
-}

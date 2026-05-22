@@ -131,31 +131,23 @@ function BallOverlay({ x, y, r = 5.2 }) {
 }
 
 const OVERLAY_OFFSETS = {
-  // Final-final vertical correction pass.
-  1: { dx: 1.5, dy: -2.7 },
-  2: { dx: -2.4, dy: -3.2 },
-  3: { dx: -0.8, dy: -3.0 },
-  4: { dx: 1.1, dy: -2.5 },
-  5: { dx: -1.6, dy: -2.5 },
-  6: { dx: 0.0, dy: -2.2 },
-  7: { dx: -1.3, dy: -2.4 },
-  8: { dx: 1.3, dy: -0.4 },
-  9: { dx: -0.2, dy: -0.7 },
-  10: { dx: -0.6, dy: -0.7 },
-  11: { dx: -1.2, dy: -0.2 },
-};
-
-const BULL_OVERLAY_OFFSET = {
-  dx: 0,
-  dy: -1.3,
+  1: { dx: 0, dy: -1.0 },
+  2: { dx: 0, dy: -1.0 },
+  3: { dx: 0, dy: -1.0 },
+  4: { dx: -0.4, dy: -0.6 },
+  5: { dx: 0.4, dy: -0.6 },
+  6: { dx: -0.2, dy: -0.9 },
+  7: { dx: 0.2, dy: -0.9 },
+  8: { dx: 0, dy: -0.8 },
+  9: { dx: 0, dy: -0.9 },
+  10: { dx: 0, dy: -0.9 },
+  11: { dx: 0, dy: -0.8 },
 };
 
 function overlayPos(target) {
   const offset = OVERLAY_OFFSETS[target.id] || { dx: 0, dy: -0.8 };
   return { x: target.x + offset.dx, y: target.y + offset.dy };
 }
-
-
 
 
 function App() {
@@ -419,6 +411,32 @@ function App() {
         <div className="play-board-wrap">
           <svg viewBox="0 0 160 110" className="play-board" aria-label="Florbalový terč">
             <image href={boardVariant.image} x="0" y="0" width="160" height="110" preserveAspectRatio="xMidYMid meet" />
+
+            {mode.type === "clear" && activePlayer && targets.map((t) => {
+              const hit = Boolean(activePlayer.hits[String(t.id)]);
+              const pos = overlayPos(t);
+              return hit
+                ? <CheckOverlay key={`play-check-${t.id}`} x={pos.x} y={pos.y} size={5.0} />
+                : <BallOverlay key={`play-ball-${t.id}`} x={pos.x} y={pos.y} r={2.8} />;
+            })}
+
+            {mode.type === "clear" && clearModeAllHit && (
+              <BallOverlay x={80} y={55} r={10.5} />
+            )}
+
+            {mode.type === "countdown" && activePlayer && targets.map((t) => {
+              const closingInfo = getClosingInfo(t);
+              const pos = overlayPos(t);
+              return closingInfo?.closes
+                ? <BallOverlay key={`play-close-${t.id}`} x={pos.x} y={pos.y} r={2.8} />
+                : null;
+            })}
+
+            {targets.map((t) => (
+              <g key={t.id} className="hit-target" onClick={() => applyHit(t)}>
+                <circle cx={t.x} cy={t.y} r={t.d / 2 + 7} fill="transparent" />
+              </g>
+            ))}
 
             <g className="hit-target" onClick={() => applyHit("bull")}>
               <circle cx="80" cy="55" r="25" fill="transparent" />
