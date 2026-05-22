@@ -59,9 +59,10 @@ button, input, select { font: inherit; }
 .card-inner { padding: 14px; }
 
 .board-wrap {
-  background: #ffffff;
+  background: #000000;
   border-radius: 20px;
-  padding: 9px;
+  padding: 0;
+  overflow: hidden;
   touch-action: manipulation;
 }
 
@@ -71,6 +72,7 @@ button, input, select { font: inherit; }
   display: block;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  background: #000000;
 }
 
 .controls {
