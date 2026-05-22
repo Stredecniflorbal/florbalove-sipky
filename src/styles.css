@@ -48,9 +48,9 @@ button, input, select { font: inherit; }
 
 .top-selects {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 8px;
-  min-width: min(460px, 100%);
+  min-width: min(640px, 100%);
 }
 
 .top-selects label {
@@ -93,6 +93,24 @@ button, input, select { font: inherit; }
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   background: #000000;
+}
+
+.streak-box {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 10px 12px;
+  color: #cbd5e1;
+  font-size: 14px;
+}
+
+.streak-box strong {
+  color: #f8fafc;
 }
 
 .controls {
@@ -235,7 +253,7 @@ select, input {
   .card-inner { padding: 18px; }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 850px) {
   .header {
     flex-direction: column;
   }
@@ -245,8 +263,15 @@ select, input {
   }
 }
 
+@media (max-width: 560px) {
+  .top-selects { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 430px) {
   .controls { grid-template-columns: 1fr; }
-  .top-selects { grid-template-columns: 1fr; }
   .score { font-size: 30px; }
+  .streak-box {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

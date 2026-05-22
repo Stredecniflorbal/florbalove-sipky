@@ -19,17 +19,17 @@ const BASE_TARGETS = [
 
 const BOARD_VARIANTS = {
   "1-12": {
-    label: "1–12 bez 10",
+    label: "1–12",
     image: "/boards/board-1-12.svg",
     scores: { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 11, 11: 12 },
   },
   "4-24": {
-    label: "4–24",
+    label: "4–24 sudé",
     image: "/boards/board-4-24.svg",
     scores: { 1: 4, 2: 6, 3: 8, 4: 12, 5: 14, 6: 16, 7: 18, 8: 20, 9: 22, 10: 24, 11: 26 },
   },
   "7-18": {
-    label: "7–18 bez 10",
+    label: "7–18",
     image: "/boards/board-7-18.svg",
     scores: { 1: 7, 2: 8, 3: 9, 4: 11, 5: 12, 6: 13, 7: 14, 8: 15, 9: 16, 10: 17, 11: 18 },
   },
@@ -41,9 +41,18 @@ const BOARD_VARIANTS = {
 };
 
 const MODES = {
+  COUNTDOWN_200: { label: "200 → 0", start: 200, type: "countdown" },
   COUNTDOWN_300: { label: "300 → 0", start: 300, type: "countdown" },
   COUNTDOWN_500: { label: "500 → 0", start: 500, type: "countdown" },
+  COUNTDOWN_700: { label: "700 → 0", start: 700, type: "countdown" },
+  COUNTDOWN_1000: { label: "1000 → 0", start: 1000, type: "countdown" },
   CLEAR_ALL: { label: "Trefit všechny + bull", start: 0, type: "clear" },
+};
+
+const MULTIPLIER_MODES = {
+  single: { label: "Single", description: "Každá trefa 100 %" },
+  double: { label: "Double", description: "2× stejný terč = 200 %, cap 200 %" },
+  triple: { label: "Triple", description: "1×/2×/3× = 100/200/300 %" },
 };
 
 function makeId() {
@@ -58,6 +67,8 @@ function newPlayer(name, mode) {
     score: mode.type === "countdown" ? mode.start : 0,
     hits: {},
     finished: false,
+    lastTargetId: null,
+    streakCount: 0,
   };
 }
 
@@ -66,9 +77,18 @@ function safeName(name, fallback = "Nepojmenovaný hráč") {
   return trimmed || fallback;
 }
 
+function getMultiplier(multiplierMode, streakCount, modeType) {
+  if (modeType !== "countdown") return 1;
+  if (multiplierMode === "single") return 1;
+  if (multiplierMode === "double") return streakCount >= 2 ? 2 : 1;
+  if (multiplierMode === "triple") return Math.min(streakCount, 3);
+  return 1;
+}
+
 function App() {
   const [modeKey, setModeKey] = useState("COUNTDOWN_300");
   const [boardVariantKey, setBoardVariantKey] = useState("14-38");
+  const [multiplierMode, setMultiplierMode] = useState("single");
 
   const mode = MODES[modeKey];
   const boardVariant = BOARD_VARIANTS[boardVariantKey];
@@ -98,10 +118,12 @@ function App() {
     }
   }, []);
 
-  function scoreLabel(targetId, variantKey = boardVariantKey) {
-    if (targetId === "bull") return "BULL";
+  function scoreLabel(targetId, variantKey = boardVariantKey, multiplier = 1, points = null) {
+    if (targetId === "bull") return "BULL / miss";
     const score = BOARD_VARIANTS[variantKey]?.scores?.[Number(targetId)];
-    return score ? `${score} bodů` : String(targetId);
+    if (!score) return String(targetId);
+    if (multiplier > 1) return `${score} ×${multiplier} = ${points}`;
+    return `${score} bodů`;
   }
 
   function resetGame(nextModeKey = modeKey) {
@@ -120,6 +142,25 @@ function App() {
   function changeBoardVariant(nextVariantKey) {
     setBoardVariantKey(nextVariantKey);
     setHistory([]);
+    setPlayers((prev) =>
+      prev.map((p) => ({
+        ...p,
+        lastTargetId: null,
+        streakCount: 0,
+      }))
+    );
+  }
+
+  function changeMultiplierMode(nextMultiplierMode) {
+    setMultiplierMode(nextMultiplierMode);
+    setHistory([]);
+    setPlayers((prev) =>
+      prev.map((p) => ({
+        ...p,
+        lastTargetId: null,
+        streakCount: 0,
+      }))
+    );
   }
 
   function addPlayer() {
@@ -181,6 +222,12 @@ function App() {
     if (!activePlayer || activePlayer.finished) return;
 
     const before = JSON.parse(JSON.stringify(players));
+    let eventDetails = {
+      multiplier: 1,
+      points: 0,
+      streakCount: 0,
+      busted: false,
+    };
 
     setPlayers((prev) => {
       const copy = prev.map((p) => ({ ...p, hits: { ...p.hits } }));
@@ -191,17 +238,39 @@ function App() {
           const hasAll = allTargetIds.every((id) => p.hits[id]);
           if (hasAll) p.finished = true;
         }
+
+        if (mode.type === "countdown") {
+          p.lastTargetId = null;
+          p.streakCount = 0;
+        }
+
+        eventDetails = { multiplier: 1, points: 0, streakCount: 0, busted: false };
         return copy;
       }
 
       if (mode.type === "countdown") {
-        const nextScore = p.score - target.score;
-        if (nextScore >= 0) p.score = nextScore;
-        if (nextScore === 0) p.finished = true;
+        const sameTarget = p.lastTargetId === target.id;
+        const nextStreakCount = sameTarget ? p.streakCount + 1 : 1;
+        const multiplier = getMultiplier(multiplierMode, nextStreakCount, mode.type);
+        const points = target.score * multiplier;
+        const nextScore = p.score - points;
+
+        p.lastTargetId = target.id;
+        p.streakCount = nextStreakCount;
+
+        if (nextScore >= 0) {
+          p.score = nextScore;
+          if (nextScore === 0) p.finished = true;
+        } else {
+          eventDetails.busted = true;
+        }
+
+        eventDetails = { multiplier, points, streakCount: nextStreakCount, busted: nextScore < 0 };
       }
 
       if (mode.type === "clear") {
         p.hits[String(target.id)] = true;
+        eventDetails = { multiplier: 1, points: target.score, streakCount: 0, busted: false };
       }
 
       return copy;
@@ -216,6 +285,8 @@ function App() {
         playerName: activePlayer.name,
         modeKey,
         boardVariantKey,
+        multiplierMode,
+        ...eventDetails,
       },
       ...prev,
     ]);
@@ -229,6 +300,13 @@ function App() {
     setHistory((prev) => prev.slice(1));
     setEditingPlayerId(null);
   }
+
+  const activeMultiplierInfo =
+    mode.type === "countdown" && activePlayer?.lastTargetId
+      ? `Streak: terč ${activePlayer.lastTargetId}, ${activePlayer.streakCount}×`
+      : mode.type === "countdown"
+        ? "Streak: žádný"
+        : "Streak se u tohoto módu neřeší";
 
   return (
     <div className="app">
@@ -257,6 +335,15 @@ function App() {
                 ))}
               </select>
             </label>
+
+            <label>
+              <span>Násobení</span>
+              <select value={multiplierMode} onChange={(e) => changeMultiplierMode(e.target.value)}>
+                {Object.entries(MULTIPLIER_MODES).map(([key, v]) => (
+                  <option key={key} value={key}>{v.label}</option>
+                ))}
+              </select>
+            </label>
           </div>
         </div>
 
@@ -277,6 +364,11 @@ function App() {
                     <circle cx="80" cy="55" r="25" fill="transparent" />
                   </g>
                 </svg>
+              </div>
+
+              <div className="streak-box">
+                <strong>{MULTIPLIER_MODES[multiplierMode].label}</strong>
+                <span>{activeMultiplierInfo}</span>
               </div>
 
               <div className="controls">
@@ -346,7 +438,12 @@ function App() {
                             </div>
 
                             {mode.type === "countdown" ? (
-                              <div className="score">{p.score}</div>
+                              <>
+                                <div className="score">{p.score}</div>
+                                <div className="muted">
+                                  {p.lastTargetId ? `Streak: terč ${p.lastTargetId}, ${p.streakCount}×` : "Streak: žádný"}
+                                </div>
+                              </>
                             ) : (
                               <div>
                                 <div className="score">{hitCount}/{BASE_TARGETS.length}</div>
@@ -369,7 +466,8 @@ function App() {
                   {history.length === 0 && <div className="muted">Zatím nic.</div>}
                   {history.slice(0, 30).map((h, i) => (
                     <div key={i}>
-                      <strong>{h.playerName}</strong>: {scoreLabel(h.target, h.boardVariantKey)}
+                      <strong>{h.playerName}</strong>: {scoreLabel(h.target, h.boardVariantKey, h.multiplier, h.points)}
+                      {h.busted ? " / bust" : ""}
                     </div>
                   ))}
                 </div>
