@@ -155,6 +155,14 @@ function overlayPos(target) {
 }
 
 
+
+function hitboxRadius(target) {
+  // Visual target radius is d/2. Clickable hitbox should be only slightly bigger.
+  // Crowded targets get tighter hitboxes to reduce accidental taps.
+  if ([6, 7, 9, 10].includes(target.id)) return target.d / 2 + 1.5;
+  return target.d / 2 + 3.5;
+}
+
 function App() {
   const [modeKey, setModeKey] = useState("COUNTDOWN_300");
   const [boardVariantKey, setBoardVariantKey] = useState("14-38");
@@ -439,7 +447,7 @@ function App() {
 
             {targets.map((t) => (
               <g key={t.id} className="hit-target" onClick={() => applyHit(t)}>
-                <circle cx={t.x} cy={t.y} r={t.d / 2 + 7} fill="transparent" />
+                <circle cx={t.x} cy={t.y} r={hitboxRadius(t)} fill="transparent" />
               </g>
             ))}
 
@@ -526,7 +534,7 @@ function App() {
 
                   {targets.map((t) => (
                     <g key={t.id} className="hit-target" onClick={() => applyHit(t)}>
-                      <circle cx={t.x} cy={t.y} r={t.d / 2 + 7} fill="transparent" />
+                      <circle cx={t.x} cy={t.y} r={hitboxRadius(t)} fill="transparent" />
                     </g>
                   ))}
 
