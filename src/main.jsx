@@ -422,18 +422,18 @@ function App() {
                   {mode.type === "clear" && activePlayer && targets.map((t) => {
                     const hit = Boolean(activePlayer.hits[String(t.id)]);
                     return hit
-                      ? <CheckOverlay key={`check-${t.id}`} x={t.x} y={t.y} size={5.6} />
-                      : <BallOverlay key={`ball-${t.id}`} x={t.x} y={t.y} r={3.4} />;
+                      ? <CheckOverlay key={`check-${t.id}`} x={t.x} y={t.y - 0.8} size={5.2} />
+                      : <BallOverlay key={`ball-${t.id}`} x={t.x} y={t.y - 1.2} r={3.0} />;
                   })}
 
                   {mode.type === "clear" && clearModeAllHit && (
-                    <BallOverlay x={80} y={55} r={3.8} />
+                    <BallOverlay x={80} y={55} r={10.5} />
                   )}
 
                   {mode.type === "countdown" && activePlayer && targets.map((t) => {
                     const closingInfo = getClosingInfo(t);
                     return closingInfo?.closes
-                      ? <BallOverlay key={`close-${t.id}`} x={t.x} y={t.y} r={3.4} />
+                      ? <BallOverlay key={`close-${t.id}`} x={t.x} y={t.y - 1.2} r={3.0} />
                       : null;
                   })}
 
