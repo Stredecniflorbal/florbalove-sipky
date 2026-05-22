@@ -182,7 +182,6 @@ function App() {
   const [editingName, setEditingName] = useState("");
   const [history, setHistory] = useState([]);
   const [playMode, setPlayMode] = useState(false);
-  const [winnerOverlay, setWinnerOverlay] = useState(null);
 
   const activePlayer = players[activePlayerIndex];
   const allTargetIds = useMemo(() => BASE_TARGETS.map((t) => String(t.id)), []);
@@ -207,7 +206,6 @@ function App() {
     setActivePlayerIndex(0);
     setHistory([]);
     setEditingPlayerId(null);
-    setWinnerOverlay(null);
   }
 
   function changeMode(nextModeKey) {
@@ -313,7 +311,6 @@ function App() {
     if (!activePlayer || activePlayer.finished) return;
 
     const before = JSON.parse(JSON.stringify(players));
-    let winnerName = null;
     let eventDetails = {
       multiplier: 1,
       points: 0,
@@ -328,10 +325,7 @@ function App() {
       if (target === "bull") {
         if (mode.type === "clear") {
           const hasAll = allTargetIds.every((id) => p.hits[id]);
-          if (hasAll && !p.finished) {
-            p.finished = true;
-            winnerName = p.name;
-          }
+          if (hasAll) p.finished = true;
         }
 
         if (mode.type === "countdown") {
@@ -355,10 +349,7 @@ function App() {
 
         if (nextScore >= 0) {
           p.score = nextScore;
-          if (nextScore === 0 && !p.finished) {
-            p.finished = true;
-            winnerName = p.name;
-          }
+          if (nextScore === 0) p.finished = true;
         } else {
           eventDetails.busted = true;
         }
@@ -388,10 +379,6 @@ function App() {
       },
       ...prev,
     ]);
-
-    if (winnerName) {
-      setWinnerOverlay({ playerName: winnerName });
-    }
   }
 
   function undo() {
@@ -444,21 +431,6 @@ function App() {
           <button className="secondary" onClick={undo}><Undo2 size={16} /> Undo</button>
           <button className="danger" onClick={() => resetGame()}><RotateCcw size={16} /> Reset</button>
         </div>
-
-      {winnerOverlay && (
-        <div className="winner-backdrop">
-          <div className="winner-modal">
-            <div className="winner-kicker">WINNER</div>
-            <div className="winner-title">{winnerOverlay.playerName} WON!</div>
-            <div className="winner-subtitle">GG. Můžeš začít novou hru, nebo nechat ostatní dohrát pořadí.</div>
-            <div className="winner-actions">
-              <button className="play-button" onClick={() => resetGame()}>New Game</button>
-              <button className="secondary" onClick={() => setWinnerOverlay(null)}>Continue Match</button>
-              <button className="danger" onClick={() => { setWinnerOverlay(null); setPlayMode(false); }}>Exit Play Mode</button>
-            </div>
-          </div>
-        </div>
-      )}
       </div>
     );
   }
@@ -652,21 +624,6 @@ function App() {
           </aside>
         </div>
       </div>
-
-      {winnerOverlay && (
-        <div className="winner-backdrop">
-          <div className="winner-modal">
-            <div className="winner-kicker">WINNER</div>
-            <div className="winner-title">{winnerOverlay.playerName} WON!</div>
-            <div className="winner-subtitle">GG. Můžeš začít novou hru, nebo nechat ostatní dohrát pořadí.</div>
-            <div className="winner-actions">
-              <button className="play-button" onClick={() => resetGame()}>New Game</button>
-              <button className="secondary" onClick={() => setWinnerOverlay(null)}>Continue Match</button>
-              <button className="danger" onClick={() => { setWinnerOverlay(null); setPlayMode(false); }}>Exit Play Mode</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
