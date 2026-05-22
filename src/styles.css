@@ -48,7 +48,7 @@ button, input, select { font: inherit; }
 
 .top-selects {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 8px;
   min-width: min(640px, 100%);
 }
@@ -406,6 +406,34 @@ select, input {
 
 @media (max-width: 430px) {
   .controls-four {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+.debug-toggle {
+  width: 100%;
+  height: 43px;
+  background: #334155;
+}
+
+.debug-toggle.active {
+  background: linear-gradient(135deg, #facc15, #fb923c);
+  color: #020617;
+}
+
+.debug-overlay {
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.9));
+}
+
+@media (max-width: 950px) {
+  .top-selects {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .top-selects {
     grid-template-columns: 1fr;
   }
 }
