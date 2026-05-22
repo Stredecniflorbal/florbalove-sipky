@@ -3,6 +3,36 @@ import { createRoot } from "react-dom/client";
 import { Plus, RotateCcw, Undo2, Trophy, Pencil, Trash2, Check, X } from "lucide-react";
 import "./styles.css";
 
+const PLAYER_PROFILES = [
+  { id: "honik", name: "Honik", number: 28 },
+  { id: "otas", name: "Otas", number: 47 },
+  { id: "lacka", name: "Lacka", number: 97 },
+  { id: "cahy", name: "Cahy", number: 66 },
+
+  { id: "koste", name: "Koste", number: 10 },
+  { id: "kaubi", name: "Kaubi", number: 9 },
+  { id: "jenik", name: "Jenik", number: 7 },
+  { id: "fiskus", name: "Fiskus", number: 17 },
+  { id: "fiat", name: "Fiat", number: 4 },
+  { id: "dave", name: "Dave", number: 55 },
+  { id: "mara", name: "Mara", number: 11 },
+  { id: "vita", name: "Vita", number: 23 },
+
+  { id: "vojta", name: "Vojta", number: 2 },
+  { id: "picma", name: "Picma", number: 21 },
+  { id: "mates", name: "Mates", number: 99 },
+];
+
+function initials(name) {
+  return String(name || "?")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((x) => x[0]?.toUpperCase())
+    .join("")
+    .slice(0, 2);
+}
+
+
 const BASE_TARGETS = [
   { id: 1, x: 21.5, y: 95, d: 25 },
   { id: 2, x: 141.5, y: 95, d: 25 },
@@ -60,10 +90,12 @@ function makeId() {
   return String(Date.now() + Math.random());
 }
 
-function newPlayer(name, mode) {
+function newPlayer(name, mode, profile = {}) {
   return {
     id: makeId(),
+    profileId: profile.id || null,
     name,
+    number: profile.number || null,
     score: mode.type === "countdown" ? mode.start : 0,
     hits: {},
     finished: false,
@@ -187,6 +219,7 @@ function App() {
   const [editingName, setEditingName] = useState("");
   const [history, setHistory] = useState([]);
   const [playMode, setPlayMode] = useState(false);
+  const [profilePickerOpen, setProfilePickerOpen] = useState(false);
 
   const activePlayer = players[activePlayerIndex];
   const allTargetIds = useMemo(() => BASE_TARGETS.map((t) => String(t.id)), []);
@@ -246,6 +279,12 @@ function App() {
     const name = safeName(nameInput, `Hráč ${players.length + 1}`);
     setPlayers((prev) => [...prev, newPlayer(name, mode)]);
     setNameInput("");
+  }
+
+  function addProfilePlayer(profile) {
+    if (usedProfileIds.has(profile.id)) return;
+    setPlayers((prev) => [...prev, newPlayer(profile.name, mode, profile)]);
+    setProfilePickerOpen(false);
   }
 
   function startEditPlayer(player) {
@@ -413,7 +452,7 @@ function App() {
         <div className="play-topbar">
           <div>
             <div className="play-kicker">PLAY MODE!!</div>
-            <div className="play-player">{activePlayer?.name}</div>
+            <div className="play-player">{activePlayer?.name}{activePlayer?.number ? ` #${activePlayer.number}` : ""}</div>
           </div>
           <div className="play-score">
             {mode.type === "countdown" ? activePlayer?.score : `${allTargetIds.filter((id) => activePlayer?.hits[id]).length}/${BASE_TARGETS.length}`}
@@ -561,6 +600,10 @@ function App() {
           <aside className="side">
             <section className="card">
               <div className="card-inner">
+                <button className="profile-open-button" onClick={() => setProfilePickerOpen(true)}>
+                  PLAYER PROFILES
+                </button>
+
                 <div className="player-form">
                   <input
                     value={nameInput}
@@ -599,7 +642,10 @@ function App() {
                         ) : (
                           <>
                             <div className="player-top">
-                              <span className="player-name">{p.name}</span>
+                              <span className="player-name-wrap">
+                                <span className="player-avatar">{initials(p.name)}</span>
+                                <span className="player-name">{p.name}{p.number ? ` #${p.number}` : ""}</span>
+                              </span>
                               <span className="player-actions">
                                 {p.finished && <Trophy size={19} />}
                                 <button className="icon ghost" onClick={(e) => { e.stopPropagation(); startEditPlayer(p); }} title="Přejmenovat">
@@ -655,6 +701,53 @@ function App() {
           </aside>
         </div>
       </div>
+
+      {profilePickerOpen && (
+        <div className="profiles-backdrop">
+          <div className="profiles-modal">
+            <div className="profiles-header">
+              <div>
+                <div className="profiles-kicker">TEAM</div>
+                <div className="profiles-title">Vyber hráče</div>
+              </div>
+
+              <button className="secondary" onClick={() => setProfilePickerOpen(false)}>
+                Zavřít
+              </button>
+            </div>
+
+            <div className="profiles-grid">
+              {PLAYER_PROFILES.map((profile) => {
+                const used = usedProfileIds.has(profile.id);
+
+                return (
+                  <button
+                    key={profile.id}
+                    disabled={used}
+                    className={`profile-card ${used ? "used" : ""}`}
+                    onClick={() => addProfilePlayer(profile)}
+                  >
+                    <div className="profile-avatar">
+                      {initials(profile.name)}
+                    </div>
+
+                    <div className="profile-name-card">
+                      {profile.name}
+                    </div>
+
+                    <div className="profile-number-card">
+                      #{profile.number}
+                    </div>
+
+                    {used && <div className="profile-used">VE HŘE</div>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
