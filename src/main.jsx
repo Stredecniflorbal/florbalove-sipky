@@ -85,6 +85,51 @@ function getMultiplier(multiplierMode, streakCount, modeType) {
   return 1;
 }
 
+function CheckOverlay({ x, y, size = 8 }) {
+  return (
+    <g className="overlay-check" pointerEvents="none">
+      <path
+        d={`M ${x - size * 0.62} ${y - size * 0.05} L ${x - size * 0.18} ${y + size * 0.42} L ${x + size * 0.70} ${y - size * 0.55}`}
+        fill="none"
+        stroke="#22c55e"
+        strokeWidth="2.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d={`M ${x - size * 0.62} ${y - size * 0.05} L ${x - size * 0.18} ${y + size * 0.42} L ${x + size * 0.70} ${y - size * 0.55}`}
+        fill="none"
+        stroke="#052e16"
+        strokeWidth="0.65"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity="0.55"
+      />
+    </g>
+  );
+}
+
+function BallOverlay({ x, y, r = 5.2 }) {
+  const holes = [
+    [0, 0, 1.05],
+    [-2.6, -1.7, 0.75],
+    [2.5, -1.65, 0.75],
+    [-2.35, 2.0, 0.7],
+    [2.2, 2.05, 0.7],
+    [0, -3.25, 0.6],
+  ];
+
+  return (
+    <g className="overlay-ball" pointerEvents="none">
+      <circle cx={x} cy={y} r={r + 2.1} fill="rgba(14, 165, 233, 0.20)" stroke="#38bdf8" strokeWidth="1.1" />
+      <circle cx={x} cy={y} r={r} fill="#e0f2fe" stroke="#0284c7" strokeWidth="0.65" />
+      {holes.map(([dx, dy, hr], idx) => (
+        <circle key={idx} cx={x + dx} cy={y + dy} r={hr} fill="#0369a1" opacity="0.9" />
+      ))}
+    </g>
+  );
+}
+
 function App() {
   const [modeKey, setModeKey] = useState("COUNTDOWN_300");
   const [boardVariantKey, setBoardVariantKey] = useState("14-38");
@@ -218,6 +263,21 @@ function App() {
     setActivePlayerIndex((i) => (i + 1) % players.length);
   }
 
+  function getClosingInfo(target) {
+    if (!activePlayer || mode.type !== "countdown") return null;
+
+    const sameTarget = activePlayer.lastTargetId === target.id;
+    const nextStreakCount = sameTarget ? activePlayer.streakCount + 1 : 1;
+    const multiplier = getMultiplier(multiplierMode, nextStreakCount, mode.type);
+    const points = target.score * multiplier;
+
+    return {
+      closes: activePlayer.score === points,
+      multiplier,
+      points,
+    };
+  }
+
   function applyHit(target) {
     if (!activePlayer || activePlayer.finished) return;
 
@@ -308,6 +368,11 @@ function App() {
         ? "Streak: žádný"
         : "Streak se u tohoto módu neřeší";
 
+  const clearModeAllHit =
+    mode.type === "clear" &&
+    activePlayer &&
+    allTargetIds.every((id) => activePlayer.hits[id]);
+
   return (
     <div className="app">
       <div className="shell">
@@ -353,6 +418,24 @@ function App() {
               <div className="board-wrap">
                 <svg viewBox="0 0 160 110" className="board" aria-label="Florbalový terč">
                   <image href={boardVariant.image} x="0" y="0" width="160" height="110" preserveAspectRatio="xMidYMid meet" />
+
+                  {mode.type === "clear" && activePlayer && targets.map((t) => {
+                    const hit = Boolean(activePlayer.hits[String(t.id)]);
+                    return hit
+                      ? <CheckOverlay key={`check-${t.id}`} x={t.x} y={t.y} size={5.6} />
+                      : <BallOverlay key={`ball-${t.id}`} x={t.x} y={t.y} r={3.4} />;
+                  })}
+
+                  {mode.type === "clear" && clearModeAllHit && (
+                    <BallOverlay x={80} y={55} r={3.8} />
+                  )}
+
+                  {mode.type === "countdown" && activePlayer && targets.map((t) => {
+                    const closingInfo = getClosingInfo(t);
+                    return closingInfo?.closes
+                      ? <BallOverlay key={`close-${t.id}`} x={t.x} y={t.y} r={3.4} />
+                      : null;
+                  })}
 
                   {targets.map((t) => (
                     <g key={t.id} className="hit-target" onClick={() => applyHit(t)}>
