@@ -541,3 +541,29 @@ select, input {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+
+.player-avatar,
+.profile-avatar {
+  overflow: hidden;
+  position: relative;
+}
+
+.player-avatar img,
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.player-avatar-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.player-avatar img + .player-avatar-fallback,
+.profile-avatar img + .player-avatar-fallback {
+  display: none;
+}

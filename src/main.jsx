@@ -4,21 +4,21 @@ import { Plus, RotateCcw, Undo2, Trophy, Pencil, Trash2, Check, X } from "lucide
 import "./styles.css";
 
 const PLAYER_PROFILES = [
-  { id: "honik", name: "Honik", number: 28 },
-  { id: "otas", name: "Otas", number: 47 },
-  { id: "lacka", name: "Lacka", number: 97 },
-  { id: "cahy", name: "Cahy", number: 66 },
-  { id: "koste", name: "Koste", number: 10 },
-  { id: "kaubi", name: "Kaubi", number: 9 },
-  { id: "jenik", name: "Jenik", number: 7 },
-  { id: "fiskus", name: "Fiskus", number: 17 },
-  { id: "fiat", name: "Fiat", number: 4 },
-  { id: "dave", name: "Dave", number: 55 },
-  { id: "mara", name: "Mara", number: 11 },
-  { id: "vita", name: "Vita", number: 23 },
-  { id: "vojta", name: "Vojta", number: 2 },
-  { id: "picma", name: "Picma", number: 21 },
-  { id: "mates", name: "Mates", number: 99 },
+  { id: "honik", name: "Honik", number: 28, avatar: "/players/honik.jpg" },
+  { id: "otas", name: "Otas", number: 47, avatar: "/players/otas.jpg" },
+  { id: "lacka", name: "Lacka", number: 97, avatar: "/players/lacka.jpg" },
+  { id: "cahy", name: "Cahy", number: 66, avatar: "/players/cahy.jpg" },
+  { id: "koste", name: "Koste", number: 10, avatar: "/players/koste.jpg" },
+  { id: "kaubi", name: "Kaubi", number: 9, avatar: "/players/kaubi.jpg" },
+  { id: "jenik", name: "Jenik", number: 7, avatar: "/players/jenik.jpg" },
+  { id: "fiskus", name: "Fiskus", number: 17, avatar: "/players/fiskus.jpg" },
+  { id: "fiat", name: "Fiat", number: 4, avatar: "/players/fiat.jpg" },
+  { id: "dave", name: "Dave", number: 55, avatar: "/players/dave.jpg" },
+  { id: "mara", name: "Mara", number: 11, avatar: "/players/mara.jpg" },
+  { id: "vita", name: "Vita", number: 23, avatar: "/players/vita.jpg" },
+  { id: "vojta", name: "Vojta", number: 2, avatar: "/players/vojta.jpg" },
+  { id: "picma", name: "Picma", number: 21, avatar: "/players/picma.jpg" },
+  { id: "mates", name: "Mates", number: 99, avatar: "/players/mates.jpg" },
 ];
 
 function initials(name) {
@@ -642,7 +642,23 @@ function App() {
                           <>
                             <div className="player-top">
                               <span className="player-name-wrap">
-                                <span className="player-avatar">{initials(p.name)}</span>
+                                <span className="player-avatar">
+                                  {p.profileId ? (
+                                    <img
+                                      src={`/players/${p.profileId}.jpg`}
+                                      alt={p.name}
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = "none";
+                                        const fallback = e.currentTarget.nextSibling;
+                                        if (fallback) fallback.style.display = "grid";
+                                      }}
+                                    />
+                                  ) : null}
+
+                                  <span className="player-avatar-fallback">
+                                    {initials(p.name)}
+                                  </span>
+                                </span>
                                 <span className="player-name">{p.name}{p.number ? ` #${p.number}` : ""}</span>
                               </span>
                               <span className="player-actions">
@@ -723,7 +739,21 @@ function App() {
                     className={`profile-card ${used ? "used" : ""}`}
                     onClick={() => addProfilePlayer(profile)}
                   >
-                    <div className="profile-avatar">{initials(profile.name)}</div>
+                    <div className="profile-avatar">
+                        <img
+                          src={profile.avatar}
+                          alt={profile.name}
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            const fallback = e.currentTarget.nextSibling;
+                            if (fallback) fallback.style.display = "grid";
+                          }}
+                        />
+
+                        <span className="player-avatar-fallback">
+                          {initials(profile.name)}
+                        </span>
+                      </div>
                     <div className="profile-name-card">{profile.name}</div>
                     <div className="profile-number-card">#{profile.number}</div>
                     {used && <div className="profile-used">VE HŘE</div>}
