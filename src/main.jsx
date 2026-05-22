@@ -131,18 +131,18 @@ function BallOverlay({ x, y, r = 5.2 }) {
 }
 
 const OVERLAY_OFFSETS = {
-  // Offset tuning v2 based on debug screenshot.
-  1: { dx: 0.7, dy: -1.2 },   // right + up
-  2: { dx: -1.0, dy: -1.2 },  // left + up
-  3: { dx: 0.0, dy: -1.2 },   // up
-  4: { dx: 0.9, dy: -0.9 },   // right + up
-  5: { dx: -0.9, dy: -0.7 },  // left + slight up
-  6: { dx: 0.0, dy: 0.0 },    // seems okay
-  7: { dx: -0.8, dy: -0.7 },  // left + slight up
-  8: { dx: 0.8, dy: 0.0 },    // right
-  9: { dx: 0.0, dy: 0.0 },    // seems okay
-  10: { dx: -0.7, dy: 0.0 },  // slight left
-  11: { dx: -0.7, dy: 0.0 },  // slight left
+  // Tuned against the actual white circle center.
+  1: { dx: 1.2, dy: -1.0 },
+  2: { dx: -1.9, dy: -1.5 },
+  3: { dx: -0.8, dy: -1.3 },
+  4: { dx: 0.8, dy: -0.5 },
+  5: { dx: -1.3, dy: -0.7 },
+  6: { dx: -0.2, dy: -0.3 },
+  7: { dx: -1.0, dy: -0.5 },
+  8: { dx: 1.3, dy: -0.4 },
+  9: { dx: -0.2, dy: -0.2 },
+  10: { dx: -0.6, dy: -0.2 },
+  11: { dx: -0.9, dy: -0.2 },
 };
 
 function overlayPos(target) {
