@@ -131,17 +131,22 @@ function BallOverlay({ x, y, r = 5.2 }) {
 }
 
 const OVERLAY_OFFSETS = {
-  1: { dx: 0, dy: -1.0 },
-  2: { dx: 0, dy: -1.0 },
-  3: { dx: 0, dy: -1.0 },
-  4: { dx: -0.4, dy: -0.6 },
-  5: { dx: 0.4, dy: -0.6 },
-  6: { dx: -0.2, dy: -0.9 },
-  7: { dx: 0.2, dy: -0.9 },
-  8: { dx: 0, dy: -0.8 },
-  9: { dx: 0, dy: -0.9 },
-  10: { dx: 0, dy: -0.9 },
-  11: { dx: 0, dy: -0.8 },
+  1: { dx: 1.5, dy: -2.7 },
+  2: { dx: -2.4, dy: -3.2 },
+  3: { dx: -0.8, dy: -3.0 },
+  4: { dx: 1.1, dy: -2.5 },
+  5: { dx: -1.6, dy: -2.5 },
+  6: { dx: 0.0, dy: -2.2 },
+  7: { dx: -1.3, dy: -2.4 },
+  8: { dx: 1.3, dy: -0.4 },
+  9: { dx: -0.2, dy: -0.7 },
+  10: { dx: -0.6, dy: -0.7 },
+  11: { dx: -1.2, dy: -0.2 },
+};
+
+const BULL_OVERLAY_OFFSET = {
+  dx: 0,
+  dy: -1.3,
 };
 
 function overlayPos(target) {
@@ -421,7 +426,7 @@ function App() {
             })}
 
             {mode.type === "clear" && clearModeAllHit && (
-              <BallOverlay x={80} y={55} r={10.5} />
+              <BallOverlay x={80 + BULL_OVERLAY_OFFSET.dx} y={55 + BULL_OVERLAY_OFFSET.dy} r={10.5} />
             )}
 
             {mode.type === "countdown" && activePlayer && targets.map((t) => {
@@ -508,7 +513,7 @@ function App() {
                   })}
 
                   {mode.type === "clear" && clearModeAllHit && (
-                    <BallOverlay x={80} y={55} r={10.5} />
+                    <BallOverlay x={80 + BULL_OVERLAY_OFFSET.dx} y={55 + BULL_OVERLAY_OFFSET.dy} r={10.5} />
                   )}
 
                   {mode.type === "countdown" && activePlayer && targets.map((t) => {
