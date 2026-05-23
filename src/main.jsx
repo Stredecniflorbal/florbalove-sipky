@@ -21,6 +21,16 @@ const PLAYER_PROFILES = [
   { id: "mates", name: "Mates", number: 99, avatar: "/players/mates.jpg" },
 ];
 
+
+function profileImageSources(profileId) {
+  return [
+    `/players/${profileId}.jpg`,
+    `/players/${profileId}.png`,
+    `/players/${profileId}.jpeg`,
+    `/players/${profileId}.webp`,
+  ];
+}
+
 function initials(name) {
   return String(name || "?")
     .split(/\s+/)
@@ -645,9 +655,19 @@ function App() {
                                 <span className="player-avatar">
                                   {p.profileId ? (
                                     <img
-                                      src={`/players/${p.profileId}.jpg`}
+                                      src={profileImageSources(p.profileId)[0]}
                                       alt={p.name}
                                       onError={(e) => {
+                                        const currentIndex = Number(e.currentTarget.dataset.index || 0);
+                                        const nextIndex = currentIndex + 1;
+                                        const sources = profileImageSources(p.profileId);
+
+                                        if (nextIndex < sources.length) {
+                                          e.currentTarget.dataset.index = String(nextIndex);
+                                          e.currentTarget.src = sources[nextIndex];
+                                          return;
+                                        }
+
                                         e.currentTarget.style.display = "none";
                                         const fallback = e.currentTarget.nextSibling;
                                         if (fallback) fallback.style.display = "grid";
@@ -741,9 +761,19 @@ function App() {
                   >
                     <div className="profile-avatar">
                         <img
-                          src={profile.avatar}
+                          src={profileImageSources(profile.id)[0]}
                           alt={profile.name}
                           onError={(e) => {
+                            const currentIndex = Number(e.currentTarget.dataset.index || 0);
+                            const nextIndex = currentIndex + 1;
+                            const sources = profileImageSources(profile.id);
+
+                            if (nextIndex < sources.length) {
+                              e.currentTarget.dataset.index = String(nextIndex);
+                              e.currentTarget.src = sources[nextIndex];
+                              return;
+                            }
+
                             e.currentTarget.style.display = "none";
                             const fallback = e.currentTarget.nextSibling;
                             if (fallback) fallback.style.display = "grid";
